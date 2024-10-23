@@ -1,0 +1,2 @@
+# PartySpark
+Interactive Party App
