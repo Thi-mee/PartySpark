@@ -8,5 +8,5 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
   ...tseslint.configs.strict,
   ...tseslint.configs.stylistic,
-  prettierConfig,
+  prettierConfig
 );

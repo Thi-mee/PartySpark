@@ -4,23 +4,30 @@ export PATH="$HOME/.bun/bin:$PATH"
 
 # Lint and format only staged JavaScript and TypeScript files, then run tests using Bun.
 
-# Stage 1: ESLint checks on staged JavaScript and TypeScript files
+# Stage 1: ESLint checks on staged JavaScript and TypeScript files with autofix
 echo "Running ESLint on staged files..."
 
-# Loop through each staged .js and .ts file
-for file in $(git diff --cached --name-only | grep -E '\.(js|ts)$'); do
-    # Run ESLint on the staged version of the file
-    git show ":$file" | node_modules/.bin/eslint --stdin --stdin-filename "$file"
+# Get all staged .js and .ts files
+staged_files=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.(js|ts)$')
+
+if [ -n "$staged_files" ]; then
+    # Run ESLint with --fix on all staged files at once
+    node_modules/.bin/eslint --fix $staged_files
 
     # Check if ESLint failed
     if [ $? -ne 0 ]; then
-        echo "ESLint failed on staged file '$file'."
-        echo "Please fix the errors and try again. You can run ESLint manually with: npm run eslint."
-        exit 1 # Exit with failure status if ESLint fails
+        echo "ESLint failed. Please fix the remaining errors and try again."
+        echo "You can manually fix issues by running: npm run eslint"
+        exit 1
+    else
+        # Stage any autofixed files
+        git add $staged_files
     fi
-done
+else
+    echo "No staged JavaScript or TypeScript files to lint."
+fi
 
-echo "ESLint passed on all staged files."
+echo "ESLint passed or autofixes applied."
 
 # Stage 2: Prettier auto-formatting for staged files
 echo "Running Prettier formatting..."
